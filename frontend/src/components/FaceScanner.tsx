@@ -18,9 +18,10 @@ export const FaceScanner = ({ onDescriptorGenerated }: Props) => {
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const [status, setStatus] = useState<DetectionStatus>('initializing');
     const [detectionScore, setDetectionScore] = useState<number>(0);
+    const [modelsLoaded, setModelsLoaded] = useState<boolean>(false);
 
     useEffect(() => {
-        startVideo();
+        loadModels();
         return () => {
             // Cleanup: detener el stream de video cuando el componente se desmonte
             if (videoRef.current?.srcObject) {
@@ -30,7 +31,41 @@ export const FaceScanner = ({ onDescriptorGenerated }: Props) => {
         };
     }, []);
 
+    // Efecto separado para iniciar video cuando los modelos se carguen
+    useEffect(() => {
+        if (modelsLoaded) {
+            startVideo();
+        }
+    }, [modelsLoaded]);
+
+    const loadModels = async () => {
+        try {
+            setStatus('initializing');
+            console.log('🔄 Cargando modelos de face-api.js...');
+
+            const MODEL_URL = '/models';
+
+            await Promise.all([
+                faceapi.nets.ssdMobilenetv1.loadFromUri(MODEL_URL),
+                faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL),
+                faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL)
+            ]);
+
+            console.log('✅ Modelos cargados correctamente');
+            setModelsLoaded(true);
+            startVideo();
+        } catch (error) {
+            console.error('❌ Error al cargar modelos:', error);
+            setStatus('no-face');
+        }
+    };
+
     const startVideo = () => {
+        if (!modelsLoaded) {
+            console.warn('⚠️ Intentando iniciar video antes de cargar modelos');
+            return;
+        }
+
         navigator.mediaDevices.getUserMedia({ video: { width: 640, height: 480 } })
             .then((stream) => {
                 if (videoRef.current) {
@@ -117,7 +152,7 @@ export const FaceScanner = ({ onDescriptorGenerated }: Props) => {
     const getStatusMessage = () => {
         switch (status) {
             case 'initializing':
-                return { text: '🔄 Iniciando cámara...', color: 'text-blue-600', bg: 'bg-blue-50' };
+                return { text: '🔄 Cargando modelos AI...', color: 'text-blue-600', bg: 'bg-blue-50' };
             case 'searching':
                 return { text: '🔍 Buscando rostro...', color: 'text-yellow-600', bg: 'bg-yellow-50' };
             case 'detected':

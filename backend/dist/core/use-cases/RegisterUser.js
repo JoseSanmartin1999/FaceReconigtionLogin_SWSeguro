@@ -5,7 +5,8 @@ export class RegisterUser {
     constructor(userRepository) {
         this.userRepository = userRepository;
     }
-    async execute(username, passwordPlain, faceDescriptor) {
+    async execute(username, passwordPlain, faceDescriptor, role = 'user' // Role opcional, por defecto 'user'
+    ) {
         // 1. Verificar si el usuario ya existe
         const userExists = await this.userRepository.exists(username);
         if (userExists) {
@@ -18,7 +19,8 @@ export class RegisterUser {
         const newUser = new User({
             username,
             passwordHash,
-            faceDescriptor
+            faceDescriptor,
+            role // Incluir el rol
         });
         // 4. Persistencia
         await this.userRepository.create(newUser);

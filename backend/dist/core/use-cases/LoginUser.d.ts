@@ -4,7 +4,10 @@ export declare class LoginUser {
     constructor(userRepository: IUserRepository);
     execute(username: string, passwordPlain: string): Promise<{
         token: string;
-        savedDescriptor: number[];
+        userId: string | undefined;
+        username: string;
+        role: "admin" | "user";
+        faceDescriptor: number[];
     }>;
 }
 //# sourceMappingURL=LoginUser.d.ts.map

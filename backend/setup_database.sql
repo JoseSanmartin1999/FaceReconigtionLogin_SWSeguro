@@ -13,11 +13,13 @@ CREATE TABLE users (
     username VARCHAR(100) UNIQUE NOT NULL,
     password_hash VARCHAR(255) NOT NULL,
     face_descriptor JSONB NOT NULL,
+    role VARCHAR(20) DEFAULT 'user' NOT NULL CHECK (role IN ('admin', 'user')),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- Crear índice para búsquedas rápidas por username
+-- Crear índices para búsquedas rápidas
 CREATE INDEX idx_username ON users(username);
+CREATE INDEX idx_role ON users(role);
 
 -- Ver las tablas creadas
 \dt;

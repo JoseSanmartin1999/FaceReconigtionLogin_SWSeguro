@@ -3,6 +3,7 @@ export interface UserProps {
     username: string;
     passwordHash: string;
     faceDescriptor: number[];
+    role: 'admin' | 'user';
     createdAt?: Date;
 }
 export declare class User {

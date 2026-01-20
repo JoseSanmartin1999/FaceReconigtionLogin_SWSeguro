@@ -3,6 +3,7 @@ export interface UserProps {
     username: string;
     passwordHash: string;
     faceDescriptor: number[]; // El vector de 128 posiciones
+    role: 'admin' | 'user'; // Rol del usuario
     createdAt?: Date;
 }
 

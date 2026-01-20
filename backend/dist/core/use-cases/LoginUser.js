@@ -15,11 +15,18 @@ export class LoginUser {
         if (!isPasswordValid) {
             throw new Error("Credenciales inválidas.");
         }
-        const token = jwt.sign({ id: user.props.id, username: user.props.username }, process.env.JWT_SECRET || 'secret_key_123', { expiresIn: '1h' });
+        const token = jwt.sign({
+            userId: user.props.id,
+            username: user.props.username,
+            role: user.props.role
+        }, process.env.JWT_SECRET || 'secret_key_123', { expiresIn: '24h' });
         // Devolvemos el descriptor guardado para que el Front lo compare
         return {
             token,
-            savedDescriptor: user.props.faceDescriptor
+            userId: user.props.id,
+            username: user.props.username,
+            role: user.props.role,
+            faceDescriptor: user.props.faceDescriptor
         };
     }
 }

@@ -6,7 +6,12 @@ export class RegisterUser {
     // Inyección de dependencias (SOLID: D)
     constructor(private userRepository: IUserRepository) { }
 
-    async execute(username: string, passwordPlain: string, faceDescriptor: number[]): Promise<void> {
+    async execute(
+        username: string,
+        passwordPlain: string,
+        faceDescriptor: number[],
+        role: 'admin' | 'user' = 'user' // Role opcional, por defecto 'user'
+    ): Promise<void> {
         // 1. Verificar si el usuario ya existe
         const userExists = await this.userRepository.exists(username);
         if (userExists) {
@@ -21,7 +26,8 @@ export class RegisterUser {
         const newUser = new User({
             username,
             passwordHash,
-            faceDescriptor
+            faceDescriptor,
+            role // Incluir el rol
         });
 
         // 4. Persistencia

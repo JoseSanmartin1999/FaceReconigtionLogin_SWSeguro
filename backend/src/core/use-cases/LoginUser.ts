@@ -19,15 +19,22 @@ export class LoginUser {
         }
 
         const token = jwt.sign(
-            { id: user.props.id, username: user.props.username },
+            {
+                userId: user.props.id,
+                username: user.props.username,
+                role: user.props.role
+            },
             process.env.JWT_SECRET || 'secret_key_123',
-            { expiresIn: '1h' }
+            { expiresIn: '24h' }
         );
 
         // Devolvemos el descriptor guardado para que el Front lo compare
         return {
             token,
-            savedDescriptor: user.props.faceDescriptor
+            userId: user.props.id,
+            username: user.props.username,
+            role: user.props.role,
+            faceDescriptor: user.props.faceDescriptor
         };
     }
 }
