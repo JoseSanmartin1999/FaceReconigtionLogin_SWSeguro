@@ -3,6 +3,7 @@ import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { FaceScanner } from '../components/FaceScanner';
+import { usePasswordValidation } from '../hooks/usePasswordValidation';
 
 interface User {
     id: string;
@@ -25,6 +26,9 @@ const AdminDashboard = () => {
     const [newRole, setNewRole] = useState<'admin' | 'user'>('user');
     const [faceDescriptor, setFaceDescriptor] = useState<number[] | null>(null);
     const [registering, setRegistering] = useState(false);
+
+    // Validación de contraseña
+    const passwordValidation = usePasswordValidation(newPassword);
 
     // Cargar lista de usuarios al montar
     useEffect(() => {
@@ -173,16 +177,68 @@ const AdminDashboard = () => {
 
                             <div className="space-y-2">
                                 <label className="block text-sm font-semibold text-gray-700">
-                                    🔑 Contraseña
+                                    🔑 Contraseña Segura
                                 </label>
                                 <input
                                     type="password"
                                     value={newPassword}
                                     onChange={(e) => setNewPassword(e.target.value)}
                                     className="w-full p-3 border-2 border-gray-200 rounded-xl focus:border-purple-500 focus:ring-4 focus:ring-purple-100 transition-all outline-none"
-                                    placeholder="Mínimo 6 caracteres"
+                                    placeholder="Mínimo 8 caracteres"
                                     required
                                 />
+
+                                {/* Indicador de fortaleza de contraseña */}
+                                {newPassword && (
+                                    <div className="mt-2">
+                                        {/* Barra de progreso */}
+                                        <div className="h-2 w-full bg-gray-200 rounded-full overflow-hidden">
+                                            <div
+                                                className={`h-full transition-all duration-300 ${passwordValidation.strength === 0 ? 'w-0 bg-gray-300' :
+                                                        passwordValidation.strength === 1 ? 'w-1/5 bg-red-500' :
+                                                            passwordValidation.strength === 2 ? 'w-2/5 bg-orange-500' :
+                                                                passwordValidation.strength === 3 ? 'w-3/5 bg-yellow-500' :
+                                                                    passwordValidation.strength === 4 ? 'w-4/5 bg-green-500' :
+                                                                        'w-full bg-green-600'
+                                                    }`}
+                                            />
+                                        </div>
+
+                                        {/* Etiqueta de fortaleza */}
+                                        <p className={`text-xs font-semibold mt-1 ${passwordValidation.strength <= 1 ? 'text-red-600' :
+                                                passwordValidation.strength === 2 ? 'text-orange-600' :
+                                                    passwordValidation.strength === 3 ? 'text-yellow-600' :
+                                                        'text-green-600'
+                                            }`}>
+                                            {passwordValidation.strengthLabel}
+                                        </p>
+
+                                        {/* Lista de requisitos */}
+                                        {passwordValidation.errors.length > 0 && (
+                                            <div className="mt-2 p-2 bg-red-50 border border-red-200 rounded-lg">
+                                                <p className="text-xs font-semibold text-red-700 mb-1">Requisitos faltantes:</p>
+                                                <ul className="text-xs text-red-600 space-y-0.5">
+                                                    {passwordValidation.errors.map((error, i) => (
+                                                        <li key={i} className="flex items-center gap-1">
+                                                            <span>•</span>
+                                                            <span>{error}</span>
+                                                        </li>
+                                                    ))}
+                                                </ul>
+                                            </div>
+                                        )}
+
+                                        {/* Mensaje de éxito */}
+                                        {passwordValidation.isValid && (
+                                            <div className="mt-2 p-2 bg-green-50 border border-green-200 rounded-lg">
+                                                <p className="text-xs font-semibold text-green-700 flex items-center gap-1">
+                                                    <span>✅</span>
+                                                    Contraseña cumple con todos los requisitos
+                                                </p>
+                                            </div>
+                                        )}
+                                    </div>
+                                )}
                             </div>
 
                             <div className="space-y-2">
@@ -218,10 +274,10 @@ const AdminDashboard = () => {
 
                             <button
                                 type="submit"
-                                disabled={registering || !faceDescriptor}
-                                className={`w-full py-4 text-white font-bold rounded-xl transition-all transform ${registering || !faceDescriptor
-                                        ? 'bg-gray-400 cursor-not-allowed'
-                                        : 'bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 hover:scale-[1.02] active:scale-[0.98] shadow-lg hover:shadow-xl'
+                                disabled={registering || !faceDescriptor || !passwordValidation.isValid}
+                                className={`w-full py-4 text-white font-bold rounded-xl transition-all transform ${registering || !faceDescriptor || !passwordValidation.isValid
+                                    ? 'bg-gray-400 cursor-not-allowed'
+                                    : 'bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 hover:scale-[1.02] active:scale-[0.98] shadow-lg hover:shadow-xl'
                                     }`}
                             >
                                 {registering ? (
@@ -286,8 +342,8 @@ const AdminDashboard = () => {
                                                             {user.username}
                                                         </span>
                                                         <span className={`px-3 py-1 text-xs rounded-full font-bold shadow-sm ${user.role === 'admin'
-                                                                ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white'
-                                                                : 'bg-gradient-to-r from-blue-500 to-cyan-500 text-white'
+                                                            ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white'
+                                                            : 'bg-gradient-to-r from-blue-500 to-cyan-500 text-white'
                                                             }`}>
                                                             {user.role === 'admin' ? 'ADMIN' : 'USER'}
                                                         </span>
