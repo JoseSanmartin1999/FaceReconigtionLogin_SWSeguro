@@ -1,3 +1,4 @@
+
 # 🔐 Face Recognition Login - Sistema de Autenticación Segura con Control de Roles
 
 Sistema de autenticación basado en reconocimiento facial utilizando tecnologías modernas de inteligencia artificial y seguridad de software siguiendo estándares NIST SSDF y principios SOLID.

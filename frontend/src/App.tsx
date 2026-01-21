@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Routes, Route, Link, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Link, Navigate, useNavigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import { AdminRoute } from './components/AdminRoute';
@@ -10,6 +10,14 @@ import AdminDashboard from './pages/AdminDashboard';
 // Componente de navegación interno que usa el contexto
 function Navigation() {
   const { isAuthenticated, username, role, isAdmin, logout } = useAuth();
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    console.log('🚪 [App Navigation] Botón de logout presionado');
+    logout();
+    console.log('  → Redirigiendo a /');
+    navigate('/');
+  };
 
   return (
     <nav className="bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 shadow-2xl sticky top-0 z-50 backdrop-blur-sm">
@@ -69,7 +77,7 @@ function Navigation() {
 
                 {/* Botón cerrar sesión */}
                 <button
-                  onClick={logout}
+                  onClick={handleLogout}
                   className="bg-red-500 hover:bg-red-600 text-white px-5 py-2.5 rounded-xl transition-all font-semibold shadow-lg hover:shadow-xl transform hover:scale-105"
                 >
                   🚪 Salir

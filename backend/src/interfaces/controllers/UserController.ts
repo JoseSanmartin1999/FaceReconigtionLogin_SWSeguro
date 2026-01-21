@@ -37,10 +37,14 @@ export class UserController {
         try {
             const users = await userRepository.getAllUsers();
 
-            // No enviar información sensible
+            // No enviar información sensible (password_hash, face_descriptor)
             const usersInfo = users.map(user => ({
                 id: user.props.id,
                 username: user.props.username,
+                firstName: user.props.firstName,
+                lastName: user.props.lastName,
+                fullName: user.fullName,
+                email: user.props.email,
                 role: user.props.role,
                 createdAt: user.props.createdAt
             }));
@@ -58,21 +62,27 @@ export class UserController {
      */
     async registerUserByAdmin(req: AuthenticatedRequest, res: Response) {
         try {
-            const { username, password, faceDescriptor, role } = req.body;
+            const { username, password, firstName, lastName, email, faceDescriptor, role } = req.body;
 
             console.log('📥 Admin registrando usuario:', {
                 username,
+                firstName,
+                lastName,
+                email,
                 role,
                 hasPassword: !!password,
                 hasFaceDescriptor: !!faceDescriptor,
                 descriptorLength: faceDescriptor?.length
             });
 
-            // Validación
-            if (!username || !password || !faceDescriptor) {
-                return res.status(400).json({ error: 'Faltan campos obligatorios' });
+            // Validación de campos requeridos
+            if (!username || !password || !firstName || !lastName || !email || !faceDescriptor) {
+                return res.status(400).json({
+                    error: 'Faltan campos obligatorios: username, password, firstName, lastName, email, faceDescriptor'
+                });
             }
 
+            // Validar descriptor facial
             if (!Array.isArray(faceDescriptor) || faceDescriptor.length !== 128) {
                 return res.status(400).json({
                     error: `El descriptor facial debe ser un array de 128 números. Recibido: ${Array.isArray(faceDescriptor) ? faceDescriptor.length : 'no es array'}`
@@ -85,9 +95,18 @@ export class UserController {
                 return res.status(400).json({ error: 'Role inválido. Debe ser "admin" o "user"' });
             }
 
-            await registerUserUseCase.execute(username, password, faceDescriptor, userRole);
+            // Ejecutar caso de uso (incluye todas las validaciones)
+            await registerUserUseCase.execute(
+                username,
+                password,
+                firstName,
+                lastName,
+                email,
+                faceDescriptor,
+                userRole
+            );
 
-            console.log(`✅ Usuario "${username}" registrado con role "${userRole}" por admin "${req.username}"`);
+            console.log(`✅ Usuario "${username}" (${firstName} ${lastName}) registrado con role "${userRole}" por admin "${req.username}"`);
             res.status(201).json({
                 message: `Usuario ${username} registrado exitosamente con rol ${userRole}`
             });

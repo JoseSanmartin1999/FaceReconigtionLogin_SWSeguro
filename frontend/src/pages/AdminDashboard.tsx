@@ -21,6 +21,9 @@ const AdminDashboard = () => {
     const [loadingUsers, setLoadingUsers] = useState(true);
 
     // Estado para registro de nuevo usuario
+    const [newFirstName, setNewFirstName] = useState('');
+    const [newLastName, setNewLastName] = useState('');
+    const [newEmail, setNewEmail] = useState('');
     const [newUsername, setNewUsername] = useState('');
     const [newPassword, setNewPassword] = useState('');
     const [newRole, setNewRole] = useState<'admin' | 'user'>('user');
@@ -69,6 +72,9 @@ const AdminDashboard = () => {
             await axios.post(
                 'http://localhost:3000/api/users/register',
                 {
+                    firstName: newFirstName,
+                    lastName: newLastName,
+                    email: newEmail,
                     username: newUsername,
                     password: newPassword,
                     faceDescriptor: faceDescriptor,
@@ -99,7 +105,9 @@ const AdminDashboard = () => {
     };
 
     const handleLogout = () => {
+        console.log('🚪 [AdminDashboard] Botón de logout presionado');
         logout();
+        console.log('  → Redirigiendo a /');
         navigate('/');
     };
 
@@ -161,9 +169,55 @@ const AdminDashboard = () => {
                         </div>
 
                         <form onSubmit={handleRegisterUser} className="space-y-4">
+                            {/* Nombre */}
                             <div className="space-y-2">
                                 <label className="block text-sm font-semibold text-gray-700">
-                                    👤 Nombre de Usuario
+                                    👤 Nombre
+                                </label>
+                                <input
+                                    type="text"
+                                    value={newFirstName}
+                                    onChange={(e) => setNewFirstName(e.target.value)}
+                                    className="w-full p-3 border-2 border-gray-200 rounded-xl focus:border-purple-500 focus:ring-4 focus:ring-purple-100 transition-all outline-none"
+                                    placeholder="Ej: Juan"
+                                    required
+                                />
+                            </div>
+
+                            {/* Apellido */}
+                            <div className="space-y-2">
+                                <label className="block text-sm font-semibold text-gray-700">
+                                    👤 Apellido
+                                </label>
+                                <input
+                                    type="text"
+                                    value={newLastName}
+                                    onChange={(e) => setNewLastName(e.target.value)}
+                                    className="w-full p-3 border-2 border-gray-200 rounded-xl focus:border-purple-500 focus:ring-4 focus:ring-purple-100 transition-all outline-none"
+                                    placeholder="Ej: Pérez"
+                                    required
+                                />
+                            </div>
+
+                            {/* Email */}
+                            <div className="space-y-2">
+                                <label className="block text-sm font-semibold text-gray-700">
+                                    📧 Email
+                                </label>
+                                <input
+                                    type="email"
+                                    value={newEmail}
+                                    onChange={(e) => setNewEmail(e.target.value)}
+                                    className="w-full p-3 border-2 border-gray-200 rounded-xl focus:border-purple-500 focus:ring-4 focus:ring-purple-100 transition-all outline-none"
+                                    placeholder="ejemplo@correo.com"
+                                    required
+                                />
+                            </div>
+
+                            {/* Nombre de Usuario */}
+                            <div className="space-y-2">
+                                <label className="block text-sm font-semibold text-gray-700">
+                                    🔐 Nombre de Usuario
                                 </label>
                                 <input
                                     type="text"
@@ -195,20 +249,20 @@ const AdminDashboard = () => {
                                         <div className="h-2 w-full bg-gray-200 rounded-full overflow-hidden">
                                             <div
                                                 className={`h-full transition-all duration-300 ${passwordValidation.strength === 0 ? 'w-0 bg-gray-300' :
-                                                        passwordValidation.strength === 1 ? 'w-1/5 bg-red-500' :
-                                                            passwordValidation.strength === 2 ? 'w-2/5 bg-orange-500' :
-                                                                passwordValidation.strength === 3 ? 'w-3/5 bg-yellow-500' :
-                                                                    passwordValidation.strength === 4 ? 'w-4/5 bg-green-500' :
-                                                                        'w-full bg-green-600'
+                                                    passwordValidation.strength === 1 ? 'w-1/5 bg-red-500' :
+                                                        passwordValidation.strength === 2 ? 'w-2/5 bg-orange-500' :
+                                                            passwordValidation.strength === 3 ? 'w-3/5 bg-yellow-500' :
+                                                                passwordValidation.strength === 4 ? 'w-4/5 bg-green-500' :
+                                                                    'w-full bg-green-600'
                                                     }`}
                                             />
                                         </div>
 
                                         {/* Etiqueta de fortaleza */}
                                         <p className={`text-xs font-semibold mt-1 ${passwordValidation.strength <= 1 ? 'text-red-600' :
-                                                passwordValidation.strength === 2 ? 'text-orange-600' :
-                                                    passwordValidation.strength === 3 ? 'text-yellow-600' :
-                                                        'text-green-600'
+                                            passwordValidation.strength === 2 ? 'text-orange-600' :
+                                                passwordValidation.strength === 3 ? 'text-yellow-600' :
+                                                    'text-green-600'
                                             }`}>
                                             {passwordValidation.strengthLabel}
                                         </p>

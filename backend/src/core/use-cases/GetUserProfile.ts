@@ -1,30 +1,23 @@
-import { User } from "../entities/User.js";
 import { IUserRepository } from "../repositories/IUserRepository.js";
 
-/**
- * Caso de uso: Obtener perfil de usuario por ID
- * Retorna la información del usuario sin incluir el password hash
- */
 export class GetUserProfile {
     constructor(private userRepository: IUserRepository) { }
 
-    async execute(userId: string): Promise<{
-        id: string;
-        username: string;
-        role: 'admin' | 'user';
-        createdAt?: Date | undefined;
-    }> {
-        // Buscar usuario por ID
+    async execute(userId: string) {
         const user = await this.userRepository.findById(userId);
 
         if (!user) {
-            throw new Error("Usuario no encontrado.");
+            throw new Error('Usuario no encontrado');
         }
 
-        // Retornar información sin el password_hash ni face_descriptor (seguridad)
+        // Retornar solo información pública (sin password_hash ni face_descriptor)
         return {
             id: user.props.id!,
             username: user.props.username,
+            firstName: user.props.firstName,
+            lastName: user.props.lastName,
+            fullName: user.fullName,
+            email: user.props.email,
             role: user.props.role,
             createdAt: user.props.createdAt
         };

@@ -10,21 +10,26 @@ const loginUserUseCase = new LoginUser(userRepository);
 
 export class AuthController {
 
-    // MÉTODO: REGISTRO
+    // MÉTODO: REGISTRO (DEPRECADO - Usar /api/users/register desde AdminDashboard)
     async register(req: Request, res: Response) {
         try {
-            const { username, password, faceDescriptor } = req.body;
+            const { username, password, firstName, lastName, email, faceDescriptor } = req.body;
 
             console.log('📥 Registro recibido:', {
                 username,
+                firstName,
+                lastName,
+                email,
                 hasPassword: !!password,
                 hasFaceDescriptor: !!faceDescriptor,
                 descriptorLength: faceDescriptor?.length,
                 descriptorType: Array.isArray(faceDescriptor) ? 'array' : typeof faceDescriptor
             });
 
-            if (!username || !password || !faceDescriptor) {
-                return res.status(400).json({ error: "Faltan campos obligatorios." });
+            if (!username || !password || !firstName || !lastName || !email || !faceDescriptor) {
+                return res.status(400).json({
+                    error: "Faltan campos obligatorios: username, password, firstName, lastName, email, faceDescriptor"
+                });
             }
 
             // NIST SSDF: Validación de integridad del vector facial
@@ -38,7 +43,17 @@ export class AuthController {
                 });
             }
 
-            await registerUserUseCase.execute(username, password, faceDescriptor);
+            // Ejecutar RegisterUser con todos los campos
+            await registerUserUseCase.execute(
+                username,
+                password,
+                firstName,
+                lastName,
+                email,
+                faceDescriptor,
+                'user' // Role por defecto
+            );
+
             console.log('✅ Usuario registrado exitosamente:', username);
             res.status(201).json({ message: "Usuario registrado con éxito." });
         } catch (error: any) {
@@ -47,7 +62,7 @@ export class AuthController {
         }
     }
 
-    // MÉTODO: LOGIN (Única declaración corregida)
+    // MÉTODO: LOGIN
     async login(req: Request, res: Response) {
         try {
             const { username, password } = req.body;

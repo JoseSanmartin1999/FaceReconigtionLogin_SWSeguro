@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { createContext, useContext, useState, useEffect, type ReactNode } from 'react';
 
 /**
  * Interface para el contexto de autenticación
@@ -41,6 +41,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }, []);
 
     const login = (newToken: string, newUserId: string, newUsername: string, newRole: 'admin' | 'user') => {
+        console.log('🔐 [AuthContext] INICIO DE SESIÓN');
+        console.log('  → Usuario:', newUsername);
+        console.log('  → ID:', newUserId);
+        console.log('  → Rol:', newRole);
+        console.log('  → Token recibido:', newToken.substring(0, 20) + '...');
+
         setToken(newToken);
         setUserId(newUserId);
         setUsername(newUsername);
@@ -51,9 +57,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         localStorage.setItem('userId', newUserId);
         localStorage.setItem('username', newUsername);
         localStorage.setItem('role', newRole);
+
+        console.log('  ✅ Estado actualizado y guardado en localStorage');
     };
 
     const logout = () => {
+        console.log('🚪 [AuthContext] CERRANDO SESIÓN');
+        console.log('  → Usuario actual:', username);
+        console.log('  → Rol actual:', role);
+        console.log('  → Limpiando estado...');
+
         setToken(null);
         setUserId(null);
         setUsername(null);
@@ -64,6 +77,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         localStorage.removeItem('userId');
         localStorage.removeItem('username');
         localStorage.removeItem('role');
+        localStorage.clear(); // Asegurar limpieza completa
+
+        console.log('  ✅ Sesión cerrada - Estado limpio');
+        console.log('  ✅ localStorage limpiado');
     };
 
     const isAdmin = () => {

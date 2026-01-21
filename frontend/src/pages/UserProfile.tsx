@@ -6,6 +6,10 @@ import axios from 'axios';
 interface UserProfile {
     id: string;
     username: string;
+    firstName: string;
+    lastName: string;
+    fullName: string;
+    email: string;
     role: 'admin' | 'user';
     createdAt?: Date;
 }
@@ -37,7 +41,9 @@ const UserProfile = () => {
     }, [token]);
 
     const handleLogout = () => {
+        console.log('🚪 [UserProfile] Botón de logout presionado');
         logout();
+        console.log('  → Redirigiendo a /');
         navigate('/');
     };
 
@@ -111,6 +117,19 @@ const UserProfile = () => {
                             </div>
 
                             <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
+                                <p className="text-sm font-semibold text-gray-500 mb-1">Nombre Completo</p>
+                                <p className="text-2xl font-bold text-gray-800">{profile.fullName}</p>
+                                <p className="text-sm text-gray-500 mt-1">({profile.firstName} {profile.lastName})</p>
+                            </div>
+
+                            <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
+                                <p className="text-sm font-semibold text-gray-500 mb-1">Email</p>
+                                <p className="text-lg text-gray-800 flex items-center gap-2">
+                                    📧 {profile.email}
+                                </p>
+                            </div>
+
+                            <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
                                 <p className="text-sm font-semibold text-gray-500 mb-1">Nombre de Usuario</p>
                                 <p className="text-xl font-bold text-gray-800">{profile.username}</p>
                             </div>
@@ -118,8 +137,8 @@ const UserProfile = () => {
                             <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
                                 <p className="text-sm font-semibold text-gray-500 mb-2">Rol de Usuario</p>
                                 <span className={`inline-block px-4 py-2 rounded-full text-sm font-bold ${profile.role === 'admin'
-                                        ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-lg'
-                                        : 'bg-gradient-to-r from-blue-500 to-cyan-500 text-white shadow-lg'
+                                    ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-lg'
+                                    : 'bg-gradient-to-r from-blue-500 to-cyan-500 text-white shadow-lg'
                                     }`}>
                                     {profile.role === 'admin' ? '👑 Administrador' : '✨ Usuario'}
                                 </span>

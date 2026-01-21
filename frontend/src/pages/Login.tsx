@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 import * as faceapi from 'face-api.js';
 import { FaceScanner } from '../components/FaceScanner';
@@ -12,13 +12,29 @@ const Login = () => {
     const [savedDescriptor, setSavedDescriptor] = useState<number[] | null>(null);
     const [userData, setUserData] = useState<any>(null);
     const [loading, setLoading] = useState(false);
+    const loginSuccessRef = useRef(false); // useRef para actualización sincrónica
 
-    const { login } = useAuth();
+    const { login, isAuthenticated, role } = useAuth();
     const navigate = useNavigate();
+
+    // Auto-redirigir si el usuario ya está autenticado
+    useEffect(() => {
+        if (isAuthenticated) {
+            console.log('🔄 [Login] Usuario ya autenticado detectado');
+            console.log('  → Rol:', role);
+            console.log('  → Redirigiendo a dashboard...');
+            if (role === 'admin') {
+                navigate('/admin');
+            } else {
+                navigate('/profile');
+            }
+        }
+    }, [isAuthenticated, role, navigate]);
 
     const handleStep1 = async (e: React.FormEvent) => {
         e.preventDefault();
         setLoading(true);
+        loginSuccessRef.current = false; // Reset al iniciar nuevo intento
 
         try {
             // Validamos contraseña en el backend
@@ -36,23 +52,46 @@ const Login = () => {
     };
 
     const handleFaceMatch = (currentDescriptor: number[]) => {
-        if (!savedDescriptor || !userData) return;
+        // Verificación sincrónica con useRef
+        if (!savedDescriptor || !userData || loginSuccessRef.current) {
+            // Si ya hubo login exitoso, ignorar nuevos matches
+            if (loginSuccessRef.current) {
+                console.log('⚠️ [Login] Match ignorado - Login ya procesado');
+            }
+            return;
+        }
 
         // Comparación matemática (Distancia Euclidiana)
         const distance = faceapi.euclideanDistance(currentDescriptor, savedDescriptor);
 
+        console.log('📸 [Login] Verificación facial');
+        console.log('  → Distancia euclidiana:', distance.toFixed(4));
+        console.log('  → Umbral:', 0.6);
+
         // Umbral estándar: 0.6 (menor es más parecido)
         if (distance < 0.6) {
+            console.log('  ✅ Rostro coincide - Iniciando sesión...');
+            console.log('  → Usuario:', userData.username);
+            console.log('  → Rol:', userData.role);
+
+            // Marcar como exitoso INMEDIATAMENTE (sincrónico) para prevenir duplicados
+            loginSuccessRef.current = true;
+            console.log('  🔒 Login bloqueado para futuros matches');
+
             // Login exitoso - guardar en contexto
             login(userData.token, userData.userId, userData.username, userData.role);
 
             // Redirigir según el rol
+            const targetRoute = userData.role === 'admin' ? '/admin' : '/profile';
+            console.log('  → Redirigiendo a:', targetRoute);
+
             if (userData.role === 'admin') {
                 navigate('/admin');
             } else {
                 navigate('/profile');
             }
         } else {
+            console.log('  ❌ Rostro no coincide (distancia muy alta)');
             alert("❌ Rostro no coincide. Intenta de nuevo.");
         }
     };
