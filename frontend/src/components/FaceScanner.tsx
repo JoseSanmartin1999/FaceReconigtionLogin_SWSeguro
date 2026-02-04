@@ -19,6 +19,7 @@ export const FaceScanner = ({ onDescriptorGenerated }: Props) => {
     const [status, setStatus] = useState<DetectionStatus>('initializing');
     const [detectionScore, setDetectionScore] = useState<number>(0);
     const [modelsLoaded, setModelsLoaded] = useState<boolean>(false);
+    const [descriptorCaptured, setDescriptorCaptured] = useState<boolean>(false);
 
     useEffect(() => {
         loadModels();
@@ -84,9 +85,16 @@ export const FaceScanner = ({ onDescriptorGenerated }: Props) => {
         const canvas = canvasRef.current;
         if (!video || !canvas) return;
 
-        // Configurar las dimensiones del canvas
-        canvas.width = video.videoWidth;
-        canvas.height = video.videoHeight;
+        // Configurar las dimensiones del canvas para que coincidan con el tamaño renderizado del video
+        const displayWidth = video.clientWidth;
+        const displayHeight = video.clientHeight;
+
+        canvas.width = displayWidth;
+        canvas.height = displayHeight;
+
+        // Calcular el factor de escala
+        const scaleX = displayWidth / video.videoWidth;
+        const scaleY = displayHeight / video.videoHeight;
 
         // Detectar rostros continuamente cada 500ms
         const detectFaces = async () => {
@@ -99,10 +107,14 @@ export const FaceScanner = ({ onDescriptorGenerated }: Props) => {
                     .withFaceLandmarks()
                     .withFaceDescriptors();
 
-                // Limpiar el canvas
+                // Limpiar el canvas y aplicar la escala
                 const ctx = canvas.getContext('2d');
                 if (ctx) {
                     ctx.clearRect(0, 0, canvas.width, canvas.height);
+                    // Guardar el estado actual
+                    ctx.save();
+                    // Aplicar la escala para que coincida con el tamaño del video
+                    ctx.scale(scaleX, scaleY);
                 }
 
                 if (detections.length === 0) {
@@ -123,15 +135,24 @@ export const FaceScanner = ({ onDescriptorGenerated }: Props) => {
                         setStatus('low-quality');
                     } else {
                         setStatus('detected');
-                        // Convertir Float32Array a array normal
-                        const descriptorArray = Array.from(detection.descriptor);
-                        console.log('✅ Descriptor generado:', descriptorArray.length, 'elementos');
-                        onDescriptorGenerated(descriptorArray);
+                        // Solo enviar el descriptor si no se ha capturado antes
+                        if (!descriptorCaptured) {
+                            // Convertir Float32Array a array normal
+                            const descriptorArray = Array.from(detection.descriptor);
+                            console.log('✅ Descriptor generado:', descriptorArray.length, 'elementos');
+                            onDescriptorGenerated(descriptorArray);
+                            setDescriptorCaptured(true);
+                        }
                     }
 
                     // Dibujar la caja de detección y landmarks
                     faceapi.draw.drawDetections(canvas, detection);
                     faceapi.draw.drawFaceLandmarks(canvas, detection);
+                }
+
+                // Restaurar el estado del canvas
+                if (ctx) {
+                    ctx.restore();
                 }
             } catch (error) {
                 console.error("Error en detección facial:", error);
@@ -190,8 +211,7 @@ export const FaceScanner = ({ onDescriptorGenerated }: Props) => {
                 />
                 <canvas
                     ref={canvasRef}
-                    className="absolute top-0 left-0 rounded-lg"
-                    style={{ maxWidth: '640px' }}
+                    className="absolute top-0 left-0 rounded-lg w-full h-full"
                 />
             </div>
 
