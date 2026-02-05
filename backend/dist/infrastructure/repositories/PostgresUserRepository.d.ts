@@ -8,5 +8,10 @@ export declare class PostgresUserRepository implements IUserRepository {
     getAllUsers(): Promise<User[]>;
     exists(username: string): Promise<boolean>;
     existsByEmail(email: string): Promise<boolean>;
+    getAllFaceDescriptors(): Promise<Array<{
+        userId: string;
+        username: string;
+        faceDescriptor: number[];
+    }>>;
 }
 //# sourceMappingURL=PostgresUserRepository.d.ts.map

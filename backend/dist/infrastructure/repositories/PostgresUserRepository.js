@@ -98,5 +98,13 @@ export class PostgresUserRepository {
         const res = await pool.query('SELECT 1 FROM users WHERE email = $1', [email]);
         return res.rows.length > 0;
     }
+    async getAllFaceDescriptors() {
+        const res = await pool.query('SELECT id, username, face_descriptor FROM users');
+        return res.rows.map(row => ({
+            userId: row.id,
+            username: row.username,
+            faceDescriptor: row.face_descriptor
+        }));
+    }
 }
 //# sourceMappingURL=PostgresUserRepository.js.map

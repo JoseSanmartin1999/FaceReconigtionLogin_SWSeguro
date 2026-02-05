@@ -7,5 +7,10 @@ export interface IUserRepository {
     getAllUsers(): Promise<User[]>;
     exists(username: string): Promise<boolean>;
     existsByEmail(email: string): Promise<boolean>;
+    getAllFaceDescriptors(): Promise<Array<{
+        userId: string;
+        username: string;
+        faceDescriptor: number[];
+    }>>;
 }
 //# sourceMappingURL=IUserRepository.d.ts.map

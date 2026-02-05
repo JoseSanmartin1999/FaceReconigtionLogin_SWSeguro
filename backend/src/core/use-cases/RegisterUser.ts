@@ -3,6 +3,7 @@ import { IUserRepository } from "../repositories/IUserRepository.js";
 import bcrypt from "bcrypt";
 import { validatePasswordStrength } from "../utils/passwordValidator.js";
 import { validateEmail, normalizeEmail } from "../utils/emailValidator.js";
+import { areFacesSimilar } from "../utils/faceComparator.js";
 
 export class RegisterUser {
     // Inyección de dependencias (SOLID: D)
@@ -53,7 +54,28 @@ export class RegisterUser {
             throw new Error("El nombre de usuario ya está en uso.");
         }
 
-        // 5. Validar fortaleza de contraseña (NIST SSDF: PW.1)
+        // 5. Validar que el rostro no esté ya registrado (SEGURIDAD: Prevención de duplicados)
+        console.log('🔍 Verificando si el rostro ya está registrado...');
+        const existingDescriptors = await this.userRepository.getAllFaceDescriptors();
+        console.log(`📊 Descriptores existentes en BD: ${existingDescriptors.length}`);
+        console.log(`📊 Longitud del descriptor nuevo: ${faceDescriptor.length}`);
+
+        for (const existing of existingDescriptors) {
+            console.log(`🔍 Comparando con usuario: ${existing.username} (descriptor longitud: ${existing.faceDescriptor.length})`);
+            const isSimilar = areFacesSimilar(faceDescriptor, existing.faceDescriptor);
+            console.log(`  ➜ ¿Son similares? ${isSimilar}`);
+
+            if (isSimilar) {
+                console.error(`❌ ROSTRO DUPLICADO DETECTADO para: ${existing.username}`);
+                throw new Error(
+                    `Este rostro ya está registrado para el usuario: ${existing.username}. ` +
+                    `No se pueden registrar dos usuarios con el mismo rostro.`
+                );
+            }
+        }
+        console.log('✅ Rostro único verificado');
+
+        // 6. Validar fortaleza de contraseña (NIST SSDF: PW.1)
         const passwordValidation = validatePasswordStrength(passwordPlain);
         if (!passwordValidation.isValid) {
             throw new Error(
@@ -61,11 +83,11 @@ export class RegisterUser {
             );
         }
 
-        // 6. Seguridad (NIST SSDF): Hashing de contraseña (Rondas: 12)
+        // 7. Seguridad (NIST SSDF): Hashing de contraseña (Rondas: 12)
         const saltRounds = 12;
         const passwordHash = await bcrypt.hash(passwordPlain, saltRounds);
 
-        // 7. Crear entidad con todos los campos
+        // 8. Crear entidad con todos los campos
         const newUser = new User({
             username,
             passwordHash,
@@ -76,7 +98,7 @@ export class RegisterUser {
             role
         });
 
-        // 8. Persistencia
+        // 9. Persistencia
         await this.userRepository.create(newUser);
     }
 }
